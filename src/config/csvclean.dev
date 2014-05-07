@@ -1,0 +1,15 @@
+<VirtualHost *:80>
+        DocumentRoot /var/www/csvclean.dev/public/
+        ServerName csvclean.dev
+        ServerAlias www.csvclean.dev
+
+	SetEnv APP_ENV dev
+
+    <Directory /var/www/csvclean.dev/public/>
+            Options Indexes FollowSymLinks MultiViews
+            AllowOverride All
+            Order allow,deny
+            Allow From All
+    </Directory>
+</VirtualHost>
+
