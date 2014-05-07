@@ -46,12 +46,12 @@ Namespace Oikology
                 ]
             ]);
 
-            if (empty($this->hhost)) Throw New \LogicException('Cross site forgery detected, terminating...');
+            if (empty($this->host)) Throw New \LogicException('Cross site forgery detected, terminating...');
         }
 
         public static function emit()
         {
-            $csv = New Self();
+            $csv = New Self(); // fake the static
 
             $data = [];
             foreach(array_map('str_getcsv', file($csv->file->save)) AS $inc => $sub)
@@ -59,15 +59,17 @@ Namespace Oikology
                 foreach($sub AS $value) $data[$inc][] = str_replace(["\n", "\r", '\n', '\r'], '', $csv->strip($value));
             }
 
-            $csv->respond($data);
-
-//            $csv->post($csv)
+            $csv->post([
+                'host' => $csv->host,
+                'data' => $csv->respond($data),
+            ]);
         }
 
         protected function strip($string)
         {
-            $search  = [];
+            $search  = // lazy
             $replace = [];
+
             foreach ($this->_map AS $s => $r)
             {
                 $search[]  = chr((int) $s);
@@ -79,14 +81,24 @@ Namespace Oikology
 
         protected function respond($data)
         {
-            $this->response = [
-                'name' => "/tmp/{$this->file->base}-filter.csv",
-                'errs' => json_encode($this->_err),
-            ];
+            if ($buffer = fopen("/tmp/{$this->file->base}-filter.csv", 'w'))
+            {
+                foreach($data AS $val) fputcsv($buffer, $val);
+                fclose($buffer);
 
-            $outputBuffer = fopen("/tmp/{$this->file->base}-filter.csv", 'w');
-            foreach($data AS $val) fputcsv($outputBuffer, $val);
-            fclose($outputBuffer);
+                // could do it anywhere, but why not here =P
+                return [
+                    'name' => "/tmp/{$this->file->base}-filter.csv",
+                    'errs' => json_encode($this->_err),
+                ];
+            }
+
+            return [ 'errs' => 'Boolean return for fopen(), permission denied...' ];
+        }
+
+        private function post(array $array)
+        {
+            print_r($array); die;
         }
     }
 }
