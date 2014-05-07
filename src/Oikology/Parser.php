@@ -35,9 +35,18 @@ Namespace Oikology
         public function __construct()
         {
             $this->file = (object) [
+                'base' => pathinfo($_FILES["file"]["name"], PATHINFO_FILENAME),
                 'save' => $_FILES['file']['tmp_name'],
                 'name' => $_FILES["file"]["name"],
             ];
+
+            $this->host = filter_input_array(INPUT_POST, [
+                'hhost' => [
+                    'filter' => FILTER_SANITIZE_ENCODED
+                ]
+            ]);
+
+            if (empty($this->hhost)) Throw New \LogicException('Cross site forgery detected, terminating...');
         }
 
         public static function emit()
@@ -50,12 +59,9 @@ Namespace Oikology
                 foreach($sub AS $value) $data[$inc][] = str_replace(["\n", "\r", '\n', '\r'], '', $csv->strip($value));
             }
 
-            header("Content-type: text/csv");
-            header("Content-Disposition: attachment; filename={$csv->file->name}-CLEAN.csv");
-            header("Pragma: no-cache");
-            header("Expires: 0");
-
             $csv->respond($data);
+
+//            $csv->post($csv)
         }
 
         protected function strip($string)
@@ -69,11 +75,16 @@ Namespace Oikology
             }
 
             return str_replace($search, $replace, trim($string));
-            }
+        }
 
         protected function respond($data)
         {
-            $outputBuffer = fopen("php://output", 'w');
+            $this->response = [
+                'name' => "/tmp/{$this->file->base}-filter.csv",
+                'errs' => json_encode($this->_err),
+            ];
+
+            $outputBuffer = fopen("/tmp/{$this->file->base}-filter.csv", 'w');
             foreach($data AS $val) fputcsv($outputBuffer, $val);
             fclose($outputBuffer);
         }
