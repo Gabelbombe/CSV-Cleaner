@@ -2,7 +2,7 @@
     <body>
 
     <form enctype='multipart/form-data'
-          action='parser.php'
+          action='../src/parser.php'
           method='post'
     >
 

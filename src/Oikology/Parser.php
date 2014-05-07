@@ -1,13 +1,10 @@
 <?php
 
-header('Content-type: text/plain');
-define('MARKER', ':::MARKER:::');
-
-if (FALSE === ($_FILES["file"]["error"] > 0))
+Namespace Oikology
 {
-    function fixWordBullshit($string)
+    Class Parser
     {
-        $map = [
+        private $AsciiMap = [
             '33' => '!', '34' => '"', '35' => '#', '36' => '$', '37' => '%', '38' => '&', '39' => "'", '40' => '(', '41' => ')', '42' => '*',
             '43' => '+', '44' => ',', '45' => '-', '46' => '.', '47' => '/', '48' => '0', '49' => '1', '50' => '2', '51' => '3', '52' => '4',
             '53' => '5', '54' => '6', '55' => '7', '56' => '8', '57' => '9', '58' => ':', '59' => ';', '60' => '<', '61' => '=', '62' => '>',
@@ -30,43 +27,29 @@ if (FALSE === ($_FILES["file"]["error"] > 0))
             '223'=> 'ß', '224'=> 'à', '225'=> 'á', '226'=> 'â', '227'=> 'ã', '228'=> 'ä', '229'=> 'å', '230'=> 'æ', '231'=> 'ç', '232'=> 'è',
             '233'=> 'é', '234'=> 'ê', '235'=> 'ë', '236'=> 'ì', '237'=> 'í', '238'=> 'î', '239'=> 'ï', '240'=> 'ð', '241'=> 'ñ', '242'=> 'ò',
             '243'=> 'ó', '244'=> 'ô', '245'=> 'õ', '246'=> 'ö', '247'=> '÷', '248'=> 'ø', '249'=> 'ù', '250'=> 'ú', '251'=> 'û', '252'=> 'ü',
-            '253'=> 'ý', '254'=> 'þ', '255'=> 'ÿ'
+            '253'=> 'ý', '254'=> 'þ', '255'=> 'ÿ',
         ];
 
-        $search  = [];
-        $replace = [];
 
-        foreach ($map AS $s => $r)
+        public function __contruct()
         {
-            $search[] = chr((int) $s);
-            $replace[] = $r;
+
         }
 
-        return str_replace($search, $replace, trim($string));
+        protected function strip($string)
+        {
+
+            $search  = [];
+            $replace = [];
+
+            foreach ($this->map AS $s => $r)
+            {
+                $search[] = chr((int) $s);
+                $replace[] = $r;
+            }
+
+            return str_replace($search, $replace, trim($string));
+        }
+
     }
-
-    function outputCSV($data)
-    {
-        $outputBuffer = fopen("php://output", 'w');
-        foreach($data AS $val) fputcsv($outputBuffer, $val);
-        fclose($outputBuffer);
-    }
-
-
-
-    $trim = [];
-    foreach(array_map('str_getcsv', file($_FILES['file']['tmp_name'])) AS $inc => $subarray)
-    {
-        foreach($subarray AS $value) $trim[$inc][] = str_replace(["\n", "\r", '\n', '\r'], '', fixWordBullshit($value));
-    }
-
-    header("Content-type: text/csv");
-    header("Content-Disposition: attachment; filename={$_FILES["file"]["name"]}-CLEAN.csv");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    outputCSV($trim);
-
-} else {
-    echo "Error:     " . $_FILES["file"]["error"] . "\n";
 }
